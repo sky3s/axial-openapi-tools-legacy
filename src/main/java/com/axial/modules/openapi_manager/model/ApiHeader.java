@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @Getter
 @Builder
-public class OpenApiHeader {
+public class ApiHeader {
 
     /**
      * Unique definition of header

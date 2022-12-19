@@ -23,18 +23,13 @@
 
         <java.version>17</java.version>
 
-        <!-- Module Dependencies -->
-        <commons.version>0.0.1</commons.version>
-        <message-handler.version>0.0.1</message-handler.version>
-
+        <!-- Spring Dependencies -->
         <spring-cloud-starter.version>4.0.0</spring-cloud-starter.version>
-
 
         <!-- Annotation Processor Dependencies-->
         <lombok.version>1.18.24</lombok.version>
 
         <!-- Swagger 3 / Open API Dependencies  -->
-        <springdoc-openapi-ui.version>1.6.14</springdoc-openapi-ui.version>
         <springdoc-openapi-starter-webmvc-ui.version>2.0.2</springdoc-openapi-starter-webmvc-ui.version>
 
         <!-- commons dependencies with specific versions -->
@@ -51,79 +46,31 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Use bootstrap.yml -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+            <version>${spring-cloud-starter.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-
         <!-- Java Dependencies -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.0.0</version>
+            <version>${jakarta-servlet.version}</version>
         </dependency>
-
-        <!-- Module Dependencies -->
-        <dependency>
-            <groupId>com.axial.spring.modules</groupId>
-            <artifactId>commons</artifactId>
-            <version>${commons.version}</version>
-        </dependency>
-
-        <!--
-        <dependency>
-            <groupId>com.axial.spring.modules</groupId>
-            <artifactId>message-handler</artifactId>
-            <version>${message-handler.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.axial.spring.modules</groupId>
-                    <artifactId>commons</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        -->
 
         <!-- Swagger 3 / Open API Dependencies  -->
-        <!--
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>${springdoc-openapi-ui.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-lang3</artifactId>
-                    <groupId>org.apache.commons</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        -->
-
-        <!--
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-common</artifactId>
-            <version>1.6.14</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-common</artifactId>
-            <version>2.0.2</version>
-        </dependency>
-        -->
-
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.0.2</version>
+            <version>${springdoc-openapi-starter-webmvc-ui.version}</version>
         </dependency>
 
         <!-- commons dependencies with specific versions -->
@@ -144,7 +91,6 @@
             <artifactId>commons-collections4</artifactId>
             <version>${commons-collections4.version}</version>
         </dependency>
-
 
     </dependencies>
 

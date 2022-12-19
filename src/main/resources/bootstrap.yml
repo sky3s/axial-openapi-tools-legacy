@@ -14,7 +14,4 @@ springdoc:
     default-models-expand-depth: 1
     operations-sorter: alpha
     tags-sorter: alpha
-    try-it-out-enabled: true
-    filter: true
-    display-operation-id: true
     disable-swagger-default-url: false

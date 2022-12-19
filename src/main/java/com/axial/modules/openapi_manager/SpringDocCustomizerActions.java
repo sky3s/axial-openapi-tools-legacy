@@ -1,7 +1,6 @@
 package com.axial.modules.openapi_manager;
 
 import com.axial.modules.openapi_manager.model.ApiCustomizer;
-import com.axial.modules.openapi_manager.model.OpenApiHeader;
 import com.axial.modules.openapi_manager.model.config.ApiConfig;
 import com.axial.modules.openapi_manager.model.config.ApplicationApiConfig;
 import com.axial.modules.openapi_manager.model.config.HeaderConfig;
@@ -15,155 +14,131 @@ import io.swagger.v3.oas.models.parameters.HeaderParameter;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created on December 2022
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Component
+@RequiredArgsConstructor
 public class SpringDocCustomizerActions {
 
-
-    public static final String DEFAULT_API_DESCRIPTION = "Uygulama Servisleri";
     private static final String HDR_PREFIX = "hdr";
 
     private static final String COMPONENTS_PREFIX = "#/components/parameters/" + HDR_PREFIX;
-    private static final String API_IDENTIFIER_KEY = "x-api-id";
 
+    private final ApplicationApiConfig applicationApiConfig;
 
-    public static OpenAPI customOpenAPI(OpenAPI openAPI, ApplicationApiConfig applicationApiConfig, ApiCustomizer apiCustomizer) {
+    private final ApiCustomizer apiCustomizer;
+
+    public void customizeOpenAPI(OpenAPI openAPI, ApiConfig apiConfig) {
+
+        addAppGeneralDetails(openAPI);
+        addApiSpecificDetails(openAPI, apiConfig);
+        addHeaders(openAPI, apiConfig);
+    }
+
+    private void addAppGeneralDetails(OpenAPI openAPI) {
 
         /**
          * Normal şartlar altında domains nullable olamaz.
          * Config server yml verisi çekilemediğinde ve hatalar oluştuğunda hatayı saptayabilmek için eklendi.
          * istenirse nullable olmayan haline döndürülebilir.
          */
-        final List<Server> servers = ListUtils.emptyIfNull(applicationApiConfig.getDomains())
-                .stream()
-                .map(new Server()::url)
-                .collect(Collectors.toList());
+        final List<Server> servers = ListUtils.emptyIfNull(applicationApiConfig.getDomains()).stream().map(new Server()::url).collect(Collectors.toList());
 
-        /**
-         * Aktif Api için yml konfigürasyonu
-         * Nedense NULL geldiği durumlar oluyor, bunu kullanırken dikkat etmek lazım
-         */
-        final Optional<ApiConfig> currentApiConfigOpt = applicationApiConfig
-                .getApis()
-                .values()
-                .stream()
-                .filter(api -> !Boolean.TRUE.equals(api.getPointerFlag()))
-                .findFirst();
 
-        /**
-         * Ortak headerları ve api bazlı headerleri tek yerde topluyoruz ve topluca oluşturuyoruz.
-         * Apilere ekleme işlemi bir sonraki adımda yapılacak.
-         */
-        Map<String, HeaderConfig> headerMap = new HashMap<>();
-        //headerMap.putAll(mapDefaultHeadersToHeaderConfig(apiCustomizer));
-        headerMap.putAll(applicationApiConfig.getCommonHeaders());
-
-        if (currentApiConfigOpt.isPresent() && MapUtils.isNotEmpty(currentApiConfigOpt.get().getHeaders())) {
-            headerMap.putAll(currentApiConfigOpt.get().getHeaders());
-        }
-
-        openAPI
-                .servers(servers)
-                .components(createComponents(headerMap));
-
-        if (currentApiConfigOpt.isPresent()) {
-            final ApiConfig apiConfig = currentApiConfigOpt.get();
-
-            openAPI.info(new Info()
-                    .title(apiConfig.getName() + " - " + applicationApiConfig.getName())
-                    .version(applicationApiConfig.getVersion())
-                    .description(apiConfig.getDescription())
-            );
-
-            customizeHeaders(openAPI, applicationApiConfig, apiConfig);
-
-            /**
-             * API özelleştirmeleri için herhangi bir noktada bu API'nin hangi API olduğu anlamak için kullanılacak eşsiz tanımlayıcı.
-             */
-            setApiIdentifier(openAPI, apiConfig.getApiId());
-            apiConfig.setPointerFlag(Boolean.TRUE);
-        }
-
-        /**
-         * Authorize alanında gösterilecek headerların eklenmesi
-         * Yml'ye yazılanlar setApiIdentifier() ile openApi üzerine eklendikten sonra çalışır.
-         * Bu nedenle önce bu metod çalışmalı!
-         */
-       //addDefaultSecurityHeaders(openAPI, apiCustomizer);
-       addAllSecurityHeadersFromYml(openAPI, applicationApiConfig);
-
-        return openAPI;
+        openAPI.servers(servers);
     }
 
-    /**
-     * Uygulama koduna gömülecek default security header'ları varsa burada alınacaklar.
-     */
-    private static void addDefaultSecurityHeaders(OpenAPI openAPI, ApiCustomizer apiCustomizer) {
+    private void addApiSpecificDetails(OpenAPI openAPI, ApiConfig apiConfig) {
 
-        final Map<String, SecurityHeaderConfig> defaultSecurityHeaders = new HashMap<>();
-
-        ListUtils.emptyIfNull(apiCustomizer.getHeaders()).stream().filter(OpenApiHeader::isDefaultSecurityHeader).forEach(header -> {
-            final SecurityHeaderConfig securityHeader = SecurityHeaderConfig.builder().key(header.getKey())
-                    .name(header.getName()).example(header.getDefaultValue()).description(header.getDescription()).build();
-            defaultSecurityHeaders.put(securityHeader.getKey(), securityHeader);
-        });
-
-        addSecurityHeaders(openAPI, defaultSecurityHeaders);
+        openAPI.info(new Info().title(apiConfig.getName() + " - " + applicationApiConfig.getName()).version(applicationApiConfig.getVersion()).description(apiConfig.getDescription()));
     }
 
-    private static void addAllSecurityHeadersFromYml(OpenAPI openAPI, ApplicationApiConfig applicationConfig) {
-
-        final ApiConfig currentApiConfig = getApiConfigByIdentifier(openAPI, applicationConfig);
-
-        Stream<Map.Entry<String, SecurityHeaderConfig>> securityHeaderStream = MapUtils
-                .emptyIfNull(applicationConfig.getCommonSecurityHeaders())
-                .entrySet()
-                .stream();
-        if (Objects.nonNull(currentApiConfig) && MapUtils.isNotEmpty(currentApiConfig.getSecurityHeaders())) {
-            securityHeaderStream = Stream.concat(securityHeaderStream, currentApiConfig.getSecurityHeaders().entrySet().stream());
-        }
-
-        Map<String, SecurityHeaderConfig> securityHeaderMap = securityHeaderStream.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        addSecurityHeaders(openAPI, securityHeaderMap);
-    }
-
-    private static void addSecurityHeaders(OpenAPI openAPI, Map<String, SecurityHeaderConfig> securityHeaderMap) {
-
-        final Components components = openAPI.getComponents();
+    private void addHeaders(OpenAPI openAPI, ApiConfig apiConfig) {
 
         /**
-         * Ek güvenlik header'larını Authorize alanında göstermek için gereken ilk adım
+         * Api Headers
          */
-        securityHeaderMap.forEach((securityHeaderKey, securityHeader) -> {
-            components.addSecuritySchemes(securityHeader.getKey(), new SecurityScheme()
-                    .type(SecurityScheme.Type.APIKEY)
-                    .in(SecurityScheme.In.HEADER)
-                    .name(securityHeader.getKey())
-                    .description(securityHeader.getDescription()));
-        });
+        final Map<String, HeaderConfig> apiHeaderMap = new HashMap<>();
+        apiHeaderMap.putAll(mapDefaultApiHeadersToHeaderConfig());
+        apiHeaderMap.putAll(MapUtils.emptyIfNull(applicationApiConfig.getCommonHeaders()));
+        apiHeaderMap.putAll(MapUtils.emptyIfNull(apiConfig.getHeaders()));
+
+        addComponentsToApiDefinition(openAPI, createHeaderComponents(apiHeaderMap.values().stream().toList()));
+        final List<PathItem> pathItems = getAllApisOfDefinition(openAPI, apiConfig);
+        pathItems.forEach(pathItem -> addHeaderToPathItem(apiHeaderMap.values().stream().toList(), pathItem));
+
+
+        /**
+         * Security Headers
+         */
+        final Map<String, SecurityHeaderConfig> securityHeaderMap = new HashMap<>();
+        securityHeaderMap.putAll(mapDefaultSecurityHeadersToSecurityHeaderConfig());
+        securityHeaderMap.putAll(MapUtils.emptyIfNull(applicationApiConfig.getCommonSecurityHeaders()));
+        securityHeaderMap.putAll(MapUtils.emptyIfNull(apiConfig.getSecurityHeaders()));
+
+        addComponentsToApiDefinition(openAPI, createSecurityHeaderComponents(securityHeaderMap.values().stream().toList()));
+        addSecurityHeadersToDefinition(openAPI, securityHeaderMap.values().stream().toList());
+    }
+
+    private void addComponentsToApiDefinition(OpenAPI openAPI, Components components) {
+
+        if (MapUtils.isNotEmpty(components.getParameters())) {
+            components.getParameters().forEach((key, parameter) -> openAPI.getComponents().addParameters(key, parameter));
+        }
+
+        if (MapUtils.isNotEmpty(components.getSecuritySchemes())) {
+            components.getSecuritySchemes().forEach((key, schema) -> openAPI.getComponents().addSecuritySchemes(key, schema));
+        }
+    }
+
+    private Components createHeaderComponents(List<HeaderConfig> headers) {
+
+        final Components components = new Components();
+
+        /**
+         * Burada yml dosyasında tanımlanan ortak headerlar ile apiye özel headerları oluşturuyoruz.
+         */
+        if (CollectionUtils.isNotEmpty(headers)) {
+            headers.forEach(header -> components.addParameters(HDR_PREFIX + header.getName(), new HeaderParameter().required(header.getRequired()).name(header.getName()).example(header.getExample()).description(header.getDescription()).schema(new StringSchema())));
+        }
+
+        return components;
+    }
+
+    private Components createSecurityHeaderComponents(List<SecurityHeaderConfig> securityHeaders) {
+
+        final Components components = new Components();
+
+        /**
+         * Burada yml dosyasında tanımlanan ortak headerlar ile apiye özel headerları oluşturuyoruz.
+         */
+        if (CollectionUtils.isNotEmpty(securityHeaders)) {
+            securityHeaders.forEach(securityHeader -> components.addSecuritySchemes(securityHeader.getKey(), new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).name(securityHeader.getName()).description(securityHeader.getDescription())));
+        }
+
+        return components;
+    }
+
+    private void addSecurityHeadersToDefinition(OpenAPI openAPI, List<SecurityHeaderConfig> securityHeaders) {
 
         /**
          * Güvenlik header'larını Authorize alanında göstermek için gereken ikinci adım
          */
         final SecurityRequirement securityRequirement = new SecurityRequirement();
 
-        securityHeaderMap.forEach((securityHeaderKey, securityHeader) -> {
-            securityRequirement.addList(securityHeader.getKey());
-        });
+        securityHeaders.forEach(securityHeader -> securityRequirement.addList(securityHeader.getKey()));
 
         if (Objects.isNull(openAPI.getSecurity())) {
             final List<SecurityRequirement> list = new ArrayList<>();
@@ -174,62 +149,11 @@ public class SpringDocCustomizerActions {
         }
     }
 
-    private static Components createComponents(Map<String, HeaderConfig> headers) {
+    private void addHeaderToPathItem(List<HeaderConfig> headers, PathItem pathItem) {
 
-        final Components components = new Components();
-
-        /**
-         * Burada yml dosyasında tanımlanan ortak headerlar ile apiye özel headerları oluşturuyoruz.
-         */
-        if (MapUtils.isNotEmpty(headers)) {
-            headers.forEach((headerKey, header) -> {
-                components.addParameters(HDR_PREFIX + header.getName(), new HeaderParameter()
-                        .required(header.getRequired())
-                        .name(header.getName())
-                        .example(header.getExample())
-                        .description(header.getDescription())
-                        .schema(new StringSchema()));
-            });
-        }
-
-        return components;
-    }
-
-    public static void customizeHeaders(OpenAPI openApi, ApplicationApiConfig applicationApiConfig, ApiConfig apiConfig) {
-
-        final String apiUrlPrefix = apiConfig.getPath().replace("*", "");
-        final List<PathItem> pathItemList = new ArrayList<>();
-
-        /**
-         * Prepare header - api map for API specific header assignment
-         */
-        openApi.getPaths().forEach((openApiPathItemUrl, pathItem) -> {
-            if (openApiPathItemUrl.startsWith(apiUrlPrefix)) {
-                pathItemList.add(pathItem);
-            }
-        });
-
-        /**
-         * Add API specific headers to related apis
-         */
-        pathItemList.stream().forEach(pathItem -> addHeaderToPathItem(apiConfig.getHeaders(), pathItem));
-
-        /**
-         * Add common headers to all apis
-         */
-        final Map<String, HeaderConfig> commonHeaders = applicationApiConfig.getCommonHeaders();
-        openApi
-                .getPaths()
-                .values()
-                .stream()
-                .forEach(pathItem -> addHeaderToPathItem(commonHeaders, pathItem));
-    }
-
-    private static void addHeaderToPathItem(Map<String, HeaderConfig> headerMap, PathItem pathItem) {
-
-        pathItem.readOperations().stream().forEach(operation -> {
-            if (MapUtils.isNotEmpty(headerMap)) {
-                headerMap.forEach((headerKey, header) -> {
+        pathItem.readOperations().forEach(operation -> {
+            if (CollectionUtils.isNotEmpty(headers)) {
+                headers.forEach(header -> {
                     final String componentRef = COMPONENTS_PREFIX + header.getName();
                     /**
                      Bu header zaten varsa yoksayılacak. Var olan bir header tekrar eklenince duplike oluyor. Definition değiştirince hedaerlar çoklandığı için bunu yapıyoruz.
@@ -247,42 +171,29 @@ public class SpringDocCustomizerActions {
         });
     }
 
-    private static void setApiIdentifier(OpenAPI openAPI, String apiIdentifier) {
+    private List<PathItem> getAllApisOfDefinition(OpenAPI openApi, ApiConfig apiConfig) {
 
-        Map<String, Object> extensions = new HashMap<>();
-        extensions.put(API_IDENTIFIER_KEY, apiIdentifier);
-        openAPI.setExtensions(extensions);
+        final String apiUrlPrefix = apiConfig.getPath().replace("*", "");
+        final List<PathItem> pathItems = new ArrayList<>();
+
+        /**
+         * Prepare header - api map for API specific header assignment
+         */
+        openApi.getPaths().forEach((openApiPathItemUrl, pathItem) -> {
+            if (openApiPathItemUrl.startsWith(apiUrlPrefix)) {
+                pathItems.add(pathItem);
+            }
+        });
+
+        return pathItems;
     }
 
-    private static String getApiIdentifier(OpenAPI openAPI) {
-
-        final Map<String, Object> extensions = openAPI.getExtensions();
-        if (MapUtils.isNotEmpty(extensions)) {
-            return (String) extensions.get(API_IDENTIFIER_KEY);
-        }
-        return null;
+    private Map<String, HeaderConfig> mapDefaultApiHeadersToHeaderConfig() {
+        return ListUtils.emptyIfNull(apiCustomizer.getApiHeaders()).stream().map(header -> HeaderConfig.builder().name(header.getName()).required(header.isRequired()).description(header.getDescription()).defaultValue(header.getDefaultValue()).example(header.getDefaultValue()).build()).collect(Collectors.toMap(HeaderConfig::getName, Function.identity()));
     }
 
-    private static Map<String, HeaderConfig> mapDefaultHeadersToHeaderConfig(ApiCustomizer apiCustomizer) {
-        return ListUtils.emptyIfNull(apiCustomizer.getHeaders()).stream().filter(OpenApiHeader::isDefaultApiHeader)
-                .map(header -> HeaderConfig.builder()
-                        .name(header.getName()).required(header.isRequired())
-                        .description(header.getDescription()).defaultValue(header.getDefaultValue())
-                        .example(header.getDefaultValue()).build()).collect(Collectors.toMap(HeaderConfig::getName, Function.identity()));
-    }
-
-    private static ApiConfig getApiConfigByIdentifier(OpenAPI openAPI, ApplicationApiConfig applicationConfig) {
-
-        final String apiIdentifier = getApiIdentifier(openAPI);
-        return getApiConfigByIdentifier(apiIdentifier, applicationConfig);
-    }
-
-    private static ApiConfig getApiConfigByIdentifier(String apiIdentifier, ApplicationApiConfig applicationConfig) {
-
-        if (StringUtils.isBlank(apiIdentifier)) {
-            return null;
-        }
-        return applicationConfig.getApis().values().stream().filter(api -> api.getApiId().equals(apiIdentifier)).findFirst().orElse(null);
+    private Map<String, SecurityHeaderConfig> mapDefaultSecurityHeadersToSecurityHeaderConfig() {
+        return ListUtils.emptyIfNull(apiCustomizer.getSecurityHeaders()).stream().map(header -> SecurityHeaderConfig.builder().key(header.getKey()).name(header.getName()).example(header.getDefaultValue()).description(header.getDescription()).build()).collect(Collectors.toMap(SecurityHeaderConfig::getKey, Function.identity()));
     }
 
 }
