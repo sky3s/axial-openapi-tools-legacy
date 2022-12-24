@@ -1,5 +1,6 @@
 package com.axial.modules.openapi_manager.model;
 
+import com.axial.modules.openapi_manager.model.config.SecurityHeaderConfig;
 import org.apache.commons.collections4.ListUtils;
 
 import java.util.ArrayList;
@@ -10,7 +11,8 @@ import java.util.stream.Collectors;
 
 /**
  * Created on December 2022
- */public interface ApiCustomizer {
+ */
+public interface ApiCustomizer {
 
     default List<ApiHeader> getDefaultHeaders() {
 
@@ -28,19 +30,20 @@ import java.util.stream.Collectors;
     }
 
     default List<ApiHeader> getApiHeaders() {
-        return new ArrayList<>(getDefaultApiHeaders());
-    }
-
-    default List<ApiHeader> getSecurityHeaders() {
-        return new ArrayList<>(getDefaultSecurityHeaders());
-    }
-
-    default List<ApiHeader> getDefaultApiHeaders() {
         return ListUtils.emptyIfNull(getHeaders()).stream().filter(ApiHeader::isDefaultApiHeader).collect(Collectors.toUnmodifiableList());
     }
 
-    default List<ApiHeader> getDefaultSecurityHeaders() {
-        return ListUtils.emptyIfNull(getHeaders()).stream().filter(ApiHeader::isDefaultSecurityHeader).collect(Collectors.toUnmodifiableList());
+    default List<SecurityHeaderConfig> getSecurityHeaders() {
+        return ListUtils.emptyIfNull(getHeaders()).stream()
+                .filter(ApiHeader::isDefaultSecurityHeader)
+                .map(header ->
+                        SecurityHeaderConfig.builder()
+                                .key(header.getKey())
+                                .name(header.getName())
+                                .example(header.getDefaultValue())
+                                .description(header.getDescription())
+                                .build())
+                .collect(Collectors.toUnmodifiableList());
     }
 
 }

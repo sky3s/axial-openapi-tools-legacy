@@ -60,7 +60,7 @@ public class SpringDocCustomizerActions {
 
     private void addApiSpecificDetails(OpenAPI openAPI, ApiConfig apiConfig) {
 
-        openAPI.info(new Info().title(apiConfig.getName() + " - " + applicationApiConfig.getName()).version(applicationApiConfig.getVersion()).description(apiConfig.getDescription()));
+        openAPI.info(new Info().title(apiConfig.getGroupName() + " - " + applicationApiConfig.getName()).version(applicationApiConfig.getVersion()).description(apiConfig.getDescription()));
     }
 
     private void addHeaders(OpenAPI openAPI, ApiConfig apiConfig) {
@@ -183,7 +183,7 @@ public class SpringDocCustomizerActions {
     }
 
     private Map<String, SecurityHeaderConfig> mapDefaultSecurityHeadersToSecurityHeaderConfig() {
-        return ListUtils.emptyIfNull(apiCustomizer.getSecurityHeaders()).stream().map(header -> SecurityHeaderConfig.builder().key(header.getKey()).name(header.getName()).example(header.getDefaultValue()).description(header.getDescription()).build()).collect(Collectors.toMap(SecurityHeaderConfig::getKey, Function.identity()));
+        return ListUtils.emptyIfNull(apiCustomizer.getSecurityHeaders()).stream().collect(Collectors.toMap(SecurityHeaderConfig::getKey, Function.identity()));
     }
 
 }
