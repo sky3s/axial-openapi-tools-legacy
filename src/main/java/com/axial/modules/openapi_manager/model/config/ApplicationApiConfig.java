@@ -15,8 +15,14 @@ import java.util.Map;
 @ConfigurationProperties("api-config")
 public class ApplicationApiConfig {
 
+    /**
+     * Application Name
+     */
     private String name;
 
+    /**
+     * Custom server's domain names
+     */
     private List<String> domains;
 
     private String version;
@@ -24,8 +30,6 @@ public class ApplicationApiConfig {
     private Map<String, SecurityHeaderConfig> commonSecurityHeaders;
 
     private Map<String, HeaderConfig> commonHeaders;
-
-    private List<String> customPaths;
 
     private Map<String, ApiConfig> apis;
 

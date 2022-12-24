@@ -49,13 +49,11 @@ public class SpringDocCustomizerActions {
 
     private void addAppGeneralDetails(OpenAPI openAPI) {
 
-        /**
-         * Normal şartlar altında domains nullable olamaz.
-         * Config server yml verisi çekilemediğinde ve hatalar oluştuğunda hatayı saptayabilmek için eklendi.
-         * istenirse nullable olmayan haline döndürülebilir.
-         */
-        final List<Server> servers = ListUtils.emptyIfNull(applicationApiConfig.getDomains()).stream().map(new Server()::url).collect(Collectors.toList());
-
+        final List<Server> servers = ListUtils.emptyIfNull(applicationApiConfig.getDomains()).stream().map(domain -> {
+            final Server server = new Server();
+            server.setUrl(domain);
+            return server;
+        }).collect(Collectors.toList());
 
         openAPI.servers(servers);
     }
@@ -81,7 +79,7 @@ public class SpringDocCustomizerActions {
 
 
         /**
-         * Security Headers
+         * Security Schema Headers
          */
         final Map<String, SecurityHeaderConfig> securityHeaderMap = new HashMap<>();
         securityHeaderMap.putAll(mapDefaultSecurityHeadersToSecurityHeaderConfig());
@@ -107,9 +105,6 @@ public class SpringDocCustomizerActions {
 
         final Components components = new Components();
 
-        /**
-         * Burada yml dosyasında tanımlanan ortak headerlar ile apiye özel headerları oluşturuyoruz.
-         */
         if (CollectionUtils.isNotEmpty(headers)) {
             headers.forEach(header -> components.addParameters(HDR_PREFIX + header.getName(), new HeaderParameter().required(header.getRequired()).name(header.getName()).example(header.getExample()).description(header.getDescription()).schema(new StringSchema())));
         }
@@ -121,9 +116,6 @@ public class SpringDocCustomizerActions {
 
         final Components components = new Components();
 
-        /**
-         * Burada yml dosyasında tanımlanan ortak headerlar ile apiye özel headerları oluşturuyoruz.
-         */
         if (CollectionUtils.isNotEmpty(securityHeaders)) {
             securityHeaders.forEach(securityHeader -> components.addSecuritySchemes(securityHeader.getKey(), new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).name(securityHeader.getName()).description(securityHeader.getDescription())));
         }
@@ -133,9 +125,6 @@ public class SpringDocCustomizerActions {
 
     private void addSecurityHeadersToDefinition(OpenAPI openAPI, List<SecurityHeaderConfig> securityHeaders) {
 
-        /**
-         * Güvenlik header'larını Authorize alanında göstermek için gereken ikinci adım
-         */
         final SecurityRequirement securityRequirement = new SecurityRequirement();
 
         securityHeaders.forEach(securityHeader -> securityRequirement.addList(securityHeader.getKey()));
@@ -155,15 +144,16 @@ public class SpringDocCustomizerActions {
             if (CollectionUtils.isNotEmpty(headers)) {
                 headers.forEach(header -> {
                     final String componentRef = COMPONENTS_PREFIX + header.getName();
-                    /**
-                     Bu header zaten varsa yoksayılacak. Var olan bir header tekrar eklenince duplike oluyor. Definition değiştirince hedaerlar çoklandığı için bunu yapıyoruz.
+                    /*
+                     This header will be ignored if it already exists. When an existing header is added again, it is duplicated.
+                     We do this because the headers are multiplexed when we change the definition.
                      */
                     if (Optional.ofNullable(operation.getParameters()).orElse(new ArrayList<>()).stream().anyMatch(op -> StringUtils.equals(header.getName(), op.getName()))) {
                         return;
                     }
 
                     /**
-                     * Yeni header eklenecek.
+                     * New headers will be added.
                      */
                     operation.addParametersItem(new HeaderParameter().$ref(componentRef).name(header.getName()).description(header.getDescription()).example(header.getExample()).required(header.getRequired()));
                 });

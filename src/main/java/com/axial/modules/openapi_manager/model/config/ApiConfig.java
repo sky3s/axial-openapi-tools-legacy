@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -16,13 +15,13 @@ import java.util.Map;
 public class ApiConfig {
 
     /**
-     * API özelleştirmeleri için herhangi bir noktada bu API'nin hangi API olduğu anlamak için kullanılacak eşsiz tanımlayıcı.
-     * Her zaman set edilmeli
+     * Unique name for Api
      */
-    private String apiId;
-
     private String name;
 
+    /**
+     * Visible name for Api
+     */
     private String groupName;
 
     private String path;
@@ -31,13 +30,6 @@ public class ApiConfig {
 
     private Map<String, HeaderConfig> headers;
 
-    private List<String> allowedRoles;
-
     private String description;
-
-    /**
-     * Bu flag sadece apiId set etme işlemi sırasında kullanılacak bir flag olur başka bir iş için kullanılmamalıdır.
-     */
-    private Boolean pointerFlag;
 
 }
