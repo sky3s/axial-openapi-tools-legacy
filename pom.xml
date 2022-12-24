@@ -26,6 +26,9 @@
         <!-- Spring Dependencies -->
         <spring-cloud-starter.version>4.0.0</spring-cloud-starter.version>
 
+        <!-- Java Dependencies -->
+        <jakarta-servlet-api.version>6.0.0</jakarta-servlet-api.version>
+
         <!-- Annotation Processor Dependencies-->
         <lombok.version>1.18.24</lombok.version>
 
@@ -53,11 +56,19 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Use bootstrap.yml -->
+        <!-- This dependency is required to be able to overriding the default configuration of the actual project. -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+            <version>${spring-cloud-starter.version}</version>
+        </dependency>
+
         <!-- Java Dependencies -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-            <version>${jakarta-servlet.version}</version>
+            <version>${jakarta-servlet-api.version}</version>
         </dependency>
 
         <!-- Annotation Processor Dependencies-->
@@ -65,13 +76,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
-        </dependency>
-
-        <!-- Use bootstrap.yml -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-            <version>${spring-cloud-starter.version}</version>
         </dependency>
 
         <!-- Swagger 3 / Open API Dependencies  -->
@@ -110,7 +114,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <annotationProcessorPaths>
-                        <!-- Use in this order, otherwise MapStruct Mappers not working correctly -->
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
