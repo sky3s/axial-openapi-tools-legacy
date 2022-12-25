@@ -2,7 +2,6 @@ package com.axial.modules.openapi_manager;
 
 import com.axial.modules.openapi_manager.model.config.ApiConfig;
 import com.axial.modules.openapi_manager.model.config.ApplicationApiConfig;
-import lombok.RequiredArgsConstructor;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,12 +12,16 @@ import java.util.List;
  * Created on December 2022
  */
 @Configuration
-@RequiredArgsConstructor
 public class SpringDocCustomizer {
 
     private final ApplicationApiConfig applicationConfig;
 
     private final SpringDocCustomizerActions customizerActions;
+
+    public SpringDocCustomizer(ApplicationApiConfig applicationConfig, SpringDocCustomizerActions customizerActions) {
+        this.applicationConfig = applicationConfig;
+        this.customizerActions = customizerActions;
+    }
 
     @Bean
     GroupedOpenApi addApi0() {
@@ -48,7 +51,7 @@ public class SpringDocCustomizer {
 
     private GroupedOpenApi createGroupedOpenApi(int apiIndex) {
 
-        final List<ApiConfig> apis = applicationConfig.getApis().values().stream().toList();
+        final List<ApiConfig> apis = OpenApiUtils.emptyIfNull(applicationConfig.getApis()).values().stream().toList();
         final int apiSize = apis.size();
 
         if (apiIndex >= apiSize) {
