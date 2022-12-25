@@ -5,12 +5,14 @@ import com.axial.modules.openapi_manager.model.config.ApplicationApiConfig;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 import java.util.List;
 
 /**
  * Created on December 2022
  */
+@PropertySource("classpath:default-springdoc-config.properties")
 @Configuration
 public class SpringDocCustomizer {
 
