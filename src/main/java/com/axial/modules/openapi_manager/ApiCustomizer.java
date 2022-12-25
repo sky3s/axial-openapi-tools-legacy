@@ -33,12 +33,12 @@ public interface ApiCustomizer {
     }
 
     default List<ApiHeader> getApiHeaders() {
-        return OpenApiUtils.emptyIfNull(getHeaders())
-                .stream().filter(ApiHeader::isDefaultApiHeader).collect(Collectors.toUnmodifiableList());
+        return Collections.unmodifiableList(OpenApiUtils.emptyIfNull(getHeaders())
+                .stream().filter(ApiHeader::isDefaultApiHeader).collect(Collectors.toList()));
     }
 
     default List<SecurityHeaderConfig> getSecurityHeaders() {
-        return OpenApiUtils.emptyIfNull(getHeaders()).stream()
+        return Collections.unmodifiableList(OpenApiUtils.emptyIfNull(getHeaders()).stream()
                 .filter(ApiHeader::isDefaultSecurityHeader)
                 .map(header -> {
                     SecurityHeaderConfig securityHeader = new SecurityHeaderConfig();
@@ -47,7 +47,7 @@ public interface ApiCustomizer {
                     securityHeader.setExample(header.getDefaultValue());
                     securityHeader.setDescription(header.getDescription());
                     return securityHeader;
-                }).collect(Collectors.toUnmodifiableList());
+                }).collect(Collectors.toList()));
     }
 
 }

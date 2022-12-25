@@ -73,9 +73,9 @@ public class SpringDocCustomizerActions {
         apiHeaderMap.putAll(OpenApiUtils.emptyIfNull(applicationApiConfig.getCommonHeaders()));
         apiHeaderMap.putAll(OpenApiUtils.emptyIfNull(apiConfig.getHeaders()));
 
-        addComponentsToApiDefinition(openAPI, createHeaderComponents(apiHeaderMap.values().stream().toList()));
+        addComponentsToApiDefinition(openAPI, createHeaderComponents(apiHeaderMap.values().stream().collect(Collectors.toList())));
         final List<PathItem> pathItems = getAllApisOfDefinition(openAPI, apiConfig);
-        pathItems.forEach(pathItem -> addHeaderToPathItem(apiHeaderMap.values().stream().toList(), pathItem));
+        pathItems.forEach(pathItem -> addHeaderToPathItem(apiHeaderMap.values().stream().collect(Collectors.toList()), pathItem));
 
 
         /**
@@ -86,8 +86,8 @@ public class SpringDocCustomizerActions {
         securityHeaderMap.putAll(OpenApiUtils.emptyIfNull(applicationApiConfig.getCommonSecurityHeaders()));
         securityHeaderMap.putAll(OpenApiUtils.emptyIfNull(apiConfig.getSecurityHeaders()));
 
-        addComponentsToApiDefinition(openAPI, createSecurityHeaderComponents(securityHeaderMap.values().stream().toList()));
-        addSecurityHeadersToDefinition(openAPI, securityHeaderMap.values().stream().toList());
+        addComponentsToApiDefinition(openAPI, createSecurityHeaderComponents(securityHeaderMap.values().stream().collect(Collectors.toList())));
+        addSecurityHeadersToDefinition(openAPI, securityHeaderMap.values().stream().collect(Collectors.toList()));
     }
 
     private void addComponentsToApiDefinition(OpenAPI openAPI, Components components) {
