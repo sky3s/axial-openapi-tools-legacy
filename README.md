@@ -1,11 +1,12 @@
-# spring-openapi-manager
-Axial Spring Boot OpenApi Manager
+# spring-openapi-manager-legacy
+Axial Spring Boot OpenApi Manager Legacy
 
 
 ## Related
 
-This project uses JDK 17, Spring Boot 3 and SpringDoc2.
+This project uses JDK 8, Spring Boot 2.7.x and SpringDoc1
 
+For Spring Boot 3.x and SpringDoc2 version: https://github.com/sky3s/spring-openapi-manager 
 
 ## Tech Stack
 
