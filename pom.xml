@@ -3,16 +3,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-
-    <!--
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.1</version>
-        <relativePath/>
-    </parent>
-    -->
-
     <groupId>com.axial.spring.modules</groupId>
     <artifactId>openapi-manager</artifactId>
     <version>0.0.1</version>
@@ -36,44 +26,20 @@
         <!-- Swagger 3 / Open API Dependencies  -->
         <springdoc-openapi-starter-webmvc-ui.version>2.0.2</springdoc-openapi-starter-webmvc-ui.version>
 
-
-        <!-- ______________________________________________________ -->
-
-
-        <!-- Spring Dependencies -->
-        <spring-cloud-starter.version>4.0.0</spring-cloud-starter.version>
-
-        <!-- Java Dependencies -->
-        <jakarta-servlet-api.version>6.0.0</jakarta-servlet-api.version>
-
-        <!-- Annotation Processor Dependencies-->
-        <lombok.version>1.18.24</lombok.version>
-
-        <!-- commons dependencies with specific versions -->
-        <commons-io.version>2.11.0</commons-io.version>
-        <commons-lang3.version>3.12.0</commons-lang3.version>
-        <commons-collections4.version>4.4</commons-collections4.version>
-
     </properties>
 
     <dependencies>
 
         <!-- Spring Dependencies -->
+        <!-- Core starter, including auto-configuration support, logging and YAML -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
             <version>${spring-boot-starter.version}</version>
         </dependency>
 
-        <!--
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring-boot-starter.version}</version>
-        </dependency>
-        -->
-
         <!-- Swagger 3 / Open API Dependencies  -->
+        <!-- SpringDoc OpenAPI Starter WebMVC UI -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -81,93 +47,24 @@
             <optional>true</optional>
         </dependency>
 
-
-        <!--
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        -->
-
-        <!-- Use bootstrap.yml -->
-        <!-- This dependency is required to be able to overriding the default configuration of the actual project. -->
-        <!--
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-            <version>${spring-cloud-starter.version}</version>
-        </dependency>
-        -->
-
-        <!-- Java Dependencies -->
-        <!--
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>${jakarta-servlet-api.version}</version>
-        </dependency>
-        -->
-
-        <!-- Annotation Processor Dependencies-->
-        <!--
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-        </dependency>
-        -->
-
-
-        <!-- commons dependencies with specific versions -->
-        <!--
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${commons-io.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-collections4</artifactId>
-            <version>${commons-collections4.version}</version>
-        </dependency>
-        -->
-
     </dependencies>
 
     <build>
         <plugins>
 
+            <!-- The Compiler Plugin is used to compile the sources of your project. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <!-- Java Version -->
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
-
-                <!--
-                <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-                -->
-
             </plugin>
 
+            <!-- Builds a Java Archive (JAR) file from the compiled project classes and resources. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
