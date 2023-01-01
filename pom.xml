@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.axial.spring.modules</groupId>
-    <artifactId>openapi-manager-legacy</artifactId>
+    <artifactId>axial-openapi-tools-legacy</artifactId>
     <version>0.0.1</version>
 
-    <name>openapi-manager-legacy</name>
-    <description>Axial Spring Boot Openapi Manager Legacy</description>
+    <name>axial-openapi-tools-legacy</name>
+    <description>Axial Spring Boot Openapi Tools Legacy</description>
 
     <packaging>jar</packaging>
 
