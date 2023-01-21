@@ -1,4 +1,4 @@
-package com.axial.modules.openapi_manager.model.config;
+package com.axialworks.modules.legacy.openapi_tools.model.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -28,6 +28,7 @@ public class ApplicationApiConfig {
     private Map<String, HeaderConfig> commonHeaders;
 
     private Map<String, ApiConfig> apis;
+
 
     public String getName() {
         return name;

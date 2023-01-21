@@ -3,74 +3,52 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.axial.spring.modules</groupId>
-    <artifactId>openapi-manager-legacy</artifactId>
-    <version>0.0.1</version>
+    <parent>
+        <groupId>com.axialworks</groupId>
+        <artifactId>spring-parent-pom</artifactId>
+        <version>0.0.1</version>
+    </parent>
 
-    <name>openapi-manager-legacy</name>
-    <description>Axial Spring Boot Openapi Manager Legacy</description>
+    <groupId>com.axialworks.spring.modules</groupId>
+    <artifactId>axial-openapi-tools-legacy</artifactId>
+    <version>0.0.3-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
+    <name>Axial Openapi Legacy Tools</name>
+    <description>Axial Spring Boot 2.7 Openapi Legacy Tools, a tool for managing openapi definitions easily</description>
+    <url>https://github.com/sky3s/axial-spring-parent-legacy-pom</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/sky3s/axial-spring-parent-legacy-pom.git</connection>
+        <developerConnection>scm:git:ssh://github.com/sky3s/axial-spring-parent-legacy-pom.git</developerConnection>
+        <url>https://github.com/sky3s/axial-spring-parent-legacy-pom/tree/main</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Axial Works Developers</name>
+            <email>dev@axialworks.com</email>
+            <organization>Axial Works</organization>
+            <organizationUrl>http://axialworks.com/</organizationUrl>
+        </developer>
+    </developers>
+
     <properties>
+        <legacy-project>true</legacy-project>
 
-        <java.version>8</java.version>
-
-        <!-- Maven Dependencies -->
-        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
-        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
-
-        <!-- Spring Dependencies -->
-        <spring-boot-starter.version>2.7.7</spring-boot-starter.version>
-
-        <!-- Swagger 3 / Open API Dependencies  -->
-        <springdoc.version>1.6.14</springdoc.version>
 
     </properties>
 
     <dependencies>
 
-        <!-- Spring Dependencies -->
-        <!-- Core starter, including auto-configuration support, logging and YAML -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-            <version>${spring-boot-starter.version}</version>
-        </dependency>
-
-        <!-- Swagger 3 / Open API Dependencies  -->
-        <!-- SpringDoc OpenAPI UI -->
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>${springdoc.version}</version>
-        </dependency>
-
     </dependencies>
-
-    <build>
-        <plugins>
-
-            <!-- The Compiler Plugin is used to compile the sources of your project. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
-                <configuration>
-                    <!-- Java Version -->
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-
-            <!-- Builds a Java Archive (JAR) file from the compiled project classes and resources. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven-jar-plugin.version}</version>
-            </plugin>
-
-        </plugins>
-    </build>
 
 </project>

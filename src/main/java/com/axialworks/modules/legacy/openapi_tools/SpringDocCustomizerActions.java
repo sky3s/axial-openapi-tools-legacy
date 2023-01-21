@@ -1,9 +1,10 @@
-package com.axial.modules.openapi_manager;
+package com.axialworks.modules.legacy.openapi_tools;
 
-import com.axial.modules.openapi_manager.model.config.ApiConfig;
-import com.axial.modules.openapi_manager.model.config.ApplicationApiConfig;
-import com.axial.modules.openapi_manager.model.config.HeaderConfig;
-import com.axial.modules.openapi_manager.model.config.SecurityHeaderConfig;
+import com.axialworks.modules.legacy.openapi_tools.model.ApiHeader;
+import com.axialworks.modules.legacy.openapi_tools.model.config.ApiConfig;
+import com.axialworks.modules.legacy.openapi_tools.model.config.ApplicationApiConfig;
+import com.axialworks.modules.legacy.openapi_tools.model.config.HeaderConfig;
+import com.axialworks.modules.legacy.openapi_tools.model.config.SecurityHeaderConfig;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
  * Created on December 2022
  */
 @Component
+@PropertySource("classpath:default-springdoc-config.properties")
 public class SpringDocCustomizerActions {
 
     private static final String HDR_PREFIX = "hdr";
@@ -49,18 +52,23 @@ public class SpringDocCustomizerActions {
 
     private void addAppGeneralDetails(OpenAPI openAPI) {
 
-        final List<Server> servers = OpenApiUtils.emptyIfNull(applicationApiConfig.getDomains()).stream().map(domain -> {
-            final Server server = new Server();
-            server.setUrl(domain);
-            return server;
-        }).collect(Collectors.toList());
+        final List<Server> servers = OpenApiDataUtils.emptyIfNull(applicationApiConfig.getDomains())
+                .stream()
+                .map(domain -> {
+                    final Server server = new Server();
+                    server.setUrl(domain);
+                    return server;
+                }).collect(Collectors.toList());
 
         openAPI.servers(servers);
     }
 
     private void addApiSpecificDetails(OpenAPI openAPI, ApiConfig apiConfig) {
 
-        openAPI.info(new Info().title(apiConfig.getGroupName() + " - " + applicationApiConfig.getName()).version(applicationApiConfig.getVersion()).description(apiConfig.getDescription()));
+        openAPI.info(new Info()
+                .title(apiConfig.getGroupName() + " - " + applicationApiConfig.getName())
+                .version(applicationApiConfig.getVersion())
+                .description(apiConfig.getDescription()));
     }
 
     private void addHeaders(OpenAPI openAPI, ApiConfig apiConfig) {
@@ -70,21 +78,20 @@ public class SpringDocCustomizerActions {
          */
         final Map<String, HeaderConfig> apiHeaderMap = new HashMap<>();
         apiHeaderMap.putAll(mapDefaultApiHeadersToHeaderConfig());
-        apiHeaderMap.putAll(OpenApiUtils.emptyIfNull(applicationApiConfig.getCommonHeaders()));
-        apiHeaderMap.putAll(OpenApiUtils.emptyIfNull(apiConfig.getHeaders()));
+        apiHeaderMap.putAll(OpenApiDataUtils.emptyIfNull(applicationApiConfig.getCommonHeaders()));
+        apiHeaderMap.putAll(OpenApiDataUtils.emptyIfNull(apiConfig.getHeaders()));
 
         addComponentsToApiDefinition(openAPI, createHeaderComponents(apiHeaderMap.values().stream().collect(Collectors.toList())));
         final List<PathItem> pathItems = getAllApisOfDefinition(openAPI, apiConfig);
         pathItems.forEach(pathItem -> addHeaderToPathItem(apiHeaderMap.values().stream().collect(Collectors.toList()), pathItem));
-
 
         /**
          * Security Schema Headers
          */
         final Map<String, SecurityHeaderConfig> securityHeaderMap = new HashMap<>();
         securityHeaderMap.putAll(mapDefaultSecurityHeadersToSecurityHeaderConfig());
-        securityHeaderMap.putAll(OpenApiUtils.emptyIfNull(applicationApiConfig.getCommonSecurityHeaders()));
-        securityHeaderMap.putAll(OpenApiUtils.emptyIfNull(apiConfig.getSecurityHeaders()));
+        securityHeaderMap.putAll(OpenApiDataUtils.emptyIfNull(applicationApiConfig.getCommonSecurityHeaders()));
+        securityHeaderMap.putAll(OpenApiDataUtils.emptyIfNull(apiConfig.getSecurityHeaders()));
 
         addComponentsToApiDefinition(openAPI, createSecurityHeaderComponents(securityHeaderMap.values().stream().collect(Collectors.toList())));
         addSecurityHeadersToDefinition(openAPI, securityHeaderMap.values().stream().collect(Collectors.toList()));
@@ -92,11 +99,11 @@ public class SpringDocCustomizerActions {
 
     private void addComponentsToApiDefinition(OpenAPI openAPI, Components components) {
 
-        if (OpenApiUtils.isNotEmpty(components.getParameters())) {
+        if (OpenApiDataUtils.isNotEmpty(components.getParameters())) {
             components.getParameters().forEach((key, parameter) -> openAPI.getComponents().addParameters(key, parameter));
         }
 
-        if (OpenApiUtils.isNotEmpty(components.getSecuritySchemes())) {
+        if (OpenApiDataUtils.isNotEmpty(components.getSecuritySchemes())) {
             components.getSecuritySchemes().forEach((key, schema) -> openAPI.getComponents().addSecuritySchemes(key, schema));
         }
     }
@@ -105,8 +112,17 @@ public class SpringDocCustomizerActions {
 
         final Components components = new Components();
 
-        if (OpenApiUtils.isNotEmpty(headers)) {
-            headers.forEach(header -> components.addParameters(HDR_PREFIX + header.getName(), new HeaderParameter().required(header.getRequired()).name(header.getName()).example(header.getExample()).description(header.getDescription()).schema(new StringSchema())));
+        if (OpenApiDataUtils.isNotEmpty(headers)) {
+            headers.forEach(header ->
+                    components.addParameters(HDR_PREFIX + header.getName(),
+                            new HeaderParameter()
+                                    .required(header.getRequired())
+                                    .name(header.getName())
+                                    .example(header.getExample())
+                                    .description(header.getDescription())
+                                    .schema(new StringSchema())
+                    )
+            );
         }
 
         return components;
@@ -116,8 +132,16 @@ public class SpringDocCustomizerActions {
 
         final Components components = new Components();
 
-        if (OpenApiUtils.isNotEmpty(securityHeaders)) {
-            securityHeaders.forEach(securityHeader -> components.addSecuritySchemes(securityHeader.getKey(), new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).name(securityHeader.getName()).description(securityHeader.getDescription())));
+        if (OpenApiDataUtils.isNotEmpty(securityHeaders)) {
+            securityHeaders.forEach(securityHeader ->
+                    components.addSecuritySchemes(securityHeader.getKey(),
+                            new SecurityScheme()
+                                    .type(SecurityScheme.Type.APIKEY)
+                                    .in(SecurityScheme.In.HEADER)
+                                    .name(securityHeader.getName())
+                                    .description(securityHeader.getDescription())
+                    )
+            );
         }
 
         return components;
@@ -141,21 +165,32 @@ public class SpringDocCustomizerActions {
     private void addHeaderToPathItem(List<HeaderConfig> headers, PathItem pathItem) {
 
         pathItem.readOperations().forEach(operation -> {
-            if (OpenApiUtils.isNotEmpty(headers)) {
+            if (OpenApiDataUtils.isNotEmpty(headers)) {
                 headers.forEach(header -> {
                     final String componentRef = COMPONENTS_PREFIX + header.getName();
                     /*
                      This header will be ignored if it already exists. When an existing header is added again, it is duplicated.
                      We do this because the headers are multiplexed when we change the definition.
                      */
-                    if (Optional.ofNullable(operation.getParameters()).orElse(new ArrayList<>()).stream().anyMatch(op -> StringUtils.equals(header.getName(), op.getName()))) {
+                    if (Optional.ofNullable(operation.getParameters())
+                            .orElse(new ArrayList<>())
+                            .stream()
+                            .anyMatch(op ->
+                                    StringUtils.equals(header.getName(), op.getName()))) {
                         return;
                     }
 
                     /**
                      * New headers will be added.
                      */
-                    operation.addParametersItem(new HeaderParameter().$ref(componentRef).name(header.getName()).description(header.getDescription()).example(header.getExample()).required(header.getRequired()));
+                    operation.addParametersItem(
+                            new HeaderParameter()
+                                    .$ref(componentRef)
+                                    .name(header.getName())
+                                    .description(header.getDescription())
+                                    .example(header.getExample())
+                                    .required(header.getRequired())
+                    );
                 });
             }
         });
@@ -179,19 +214,40 @@ public class SpringDocCustomizerActions {
     }
 
     private Map<String, HeaderConfig> mapDefaultApiHeadersToHeaderConfig() {
-        return OpenApiUtils.emptyIfNull(apiCustomizer.getApiHeaders()).stream().map(header -> {
-            final HeaderConfig headerConfig = new HeaderConfig();
-            headerConfig.setName(header.getName());
-            headerConfig.setRequired(header.isRequired());
-            headerConfig.setDescription(header.getDescription());
-            headerConfig.setDefaultValue(header.getDefaultValue());
-            headerConfig.setExample(header.getDefaultValue());
-            return headerConfig;
-        }).collect(Collectors.toMap(HeaderConfig::getName, Function.identity()));
+        return OpenApiDataUtils.emptyIfNull(apiCustomizer.getApiHeaders())
+                .stream().map(SpringDocCustomizerActions::convertApiHeaderToHeaderConfig)
+                .collect(Collectors.toMap(HeaderConfig::getName, Function.identity()));
     }
 
     private Map<String, SecurityHeaderConfig> mapDefaultSecurityHeadersToSecurityHeaderConfig() {
-        return OpenApiUtils.emptyIfNull(apiCustomizer.getSecurityHeaders()).stream().collect(Collectors.toMap(SecurityHeaderConfig::getKey, Function.identity()));
+        return OpenApiDataUtils.emptyIfNull(apiCustomizer.getSecurityHeaders())
+                .stream().collect(Collectors.toMap(SecurityHeaderConfig::getName, Function.identity()));
+    }
+
+    private static HeaderConfig convertApiHeaderToHeaderConfig(ApiHeader apiHeader) {
+        if (Objects.isNull(apiHeader)) {
+            return null;
+        }
+
+        final HeaderConfig config = new HeaderConfig();
+        config.setName(apiHeader.getName());
+        config.setRequired(apiHeader.isRequired());
+        config.setDescription(apiHeader.getDescription());
+        config.setDefaultValue(apiHeader.getDefaultValue());
+        config.setDefaultValue(apiHeader.getDefaultValue());
+
+        return config;
+
+        /*
+        return HeaderConfig
+                .builder()
+                .name(apiHeader.getName())
+                .required(apiHeader.isRequired())
+                .description(apiHeader.getDescription())
+                .defaultValue(apiHeader.getDefaultValue())
+                .example(apiHeader.getDefaultValue())
+                .build();
+         */
     }
 
 }

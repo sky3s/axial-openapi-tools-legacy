@@ -1,4 +1,4 @@
-package com.axial.modules.openapi_manager;
+package com.axialworks.modules.legacy.openapi_tools;
 
 /**
  * Created on December 2022

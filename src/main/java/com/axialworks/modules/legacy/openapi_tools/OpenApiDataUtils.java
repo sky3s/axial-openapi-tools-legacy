@@ -1,13 +1,13 @@
-package com.axial.modules.openapi_manager;
+package com.axialworks.modules.legacy.openapi_tools;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-class OpenApiUtils {
+class OpenApiDataUtils {
 
-    private OpenApiUtils() { }
+    private OpenApiDataUtils() { }
 
     static boolean isEmpty(Map<?, ?> map) {
         return map == null || map.isEmpty();
@@ -32,5 +32,4 @@ class OpenApiUtils {
     static boolean isNotEmpty(Collection<?> coll) {
         return !isEmpty(coll);
     }
-
 }
